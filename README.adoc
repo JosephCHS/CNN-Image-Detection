@@ -93,4 +93,4 @@ tensorboard --logdir .
 * Installation of TensorFlow via docker
 ** Good for testing
 ** Facilitates the automation of the installation of the environment
-* Using TensorFlow `1.5.0``
+* Using TensorFlow `1.5.0`
