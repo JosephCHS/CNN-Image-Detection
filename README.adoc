@@ -9,9 +9,9 @@
 ----
 docker build directory_path_to_the_dockerfile -t give_a_name_to_your_image
 ----
-* Launch your container (`src` : path to the tensorflow folder to be mountedr)
+* Launch your container (`src` : path to the tensorflow folder to be mounted)
 ----
-nvidia-docker run --runtime=nvidia -it --mount src="$(pwd)/ikea/tensorflow",target=/mnt,type=bind -p 8888:8888 -p 6006:6006 -e HOST_PERMS="$(id -u):$(id -g)" --shm-size=1g --ulimit memlock=-1 --ulimit stack=67108864 img_id bash
+nvidia-docker run --runtime=nvidia -it --mount src="$(pwd)/user/tensorflow",target=/mnt,type=bind -p 8888:8888 -p 6006:6006 -e HOST_PERMS="$(id -u):$(id -g)" --shm-size=1g --ulimit memlock=-1 --ulimit stack=67108864 img_id bash
 ----
 
 == Neural Network Architecture
