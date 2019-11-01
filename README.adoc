@@ -1,0 +1,96 @@
+# CNN-Image-Detection
+ 
+= Neural Network with TensorFlow (Python API low level)
+
+== Requirements
+* Install https://docs.docker.com/install/[Docker]
+* To support GPUs on Linux, install https://github.com/NVIDIA/nvidia-docker[nvidia-docker]
+* Build the docker image via the dockerfile present in  `./tensorflow/docker/`
+----
+docker build directory_path_to_the_dockerfile -t give_a_name_to_your_image
+----
+* Launch your container (`src` : path to the tensorflow folder to be mountedr)
+----
+nvidia-docker run --runtime=nvidia -it --mount src="$(pwd)/ikea/tensorflow",target=/mnt,type=bind -p 8888:8888 -p 6006:6006 -e HOST_PERMS="$(id -u):$(id -g)" --shm-size=1g --ulimit memlock=-1 --ulimit stack=67108864 img_id bash
+----
+
+== Neural Network Architecture
+
+* Example : single layer convolutionnal : name, patch(6x6) x input channels(1) => output channels(6), weight matrix , bias vector bias, output matrix
+
+. input_tensor, 1-deep, X [batch, 224, 224, 3]
+
+. layer_conv_1, 6x6x3=>16 stride 1, W_C1 [6, 6, 3, 16], B_C1 [16], Y_C1 [batch, 28, 28, 16]
+. layer_conv_2, 5x5x16=>32 stride 2, W_C2 [5, 5, 16, 32], B_C2 [16], Y_C2 [batch, 28, 28, 16]
+
+. layer_conv_3, 5x5x32=>64 stride 2, W_C3 [4, 4, 32, 64], B_C3 [32], Y_C3 [batch, 14, 14, 32]
+
+. layer_conv_4, 4x4x64=>64 stride 2, W_C4 [4, 4, 64, 64], B_C4 [64], Y_C4 [batch, 7, 7, 64]
+. layer_conv_5, 4x4x64=>64 stride 2, W_C5 [4, 4, 64, 64], B_C5 [64], Y_C5 [batch, 7, 7, 64]
+. layer_conv_6, 4x4x64=>64 stride 2, W_C6 [4, 4, 64, 64], B_C6 [64], Y_C6 [batch, 7, 7, 64]
+
+. layer_reshaped, reshaped to YY (flattened) [batch, 7*7*64]
+
+. fully connected layer (relu+dropout), W_D1 [7*7*64, 200], B4 [200], Y_D1 [batch, 200]
+. fully connected layer (softmax), W_D2 [200, 8], B_D2 [8], Y_D2 [batch, 8]
+
+
+== Personnal Neural Network : Order of execution and description of scripts
+
+=== Augmentation Data
+
+Allows you to increase the size of the image dataset contained in the furniture folder. +
+Apply different modifications to the images (rotate, zoom, flip, skew).  +
+The newly generated images are put in an output folder in their respective class.
+
+----
+python3 augmentation_data.py
+----
+
+=== TFRecord Files
+
+Creates the TFRecord Files, three files containing the three sets of images :
+* Train
+* Validation
+* Test
+
+----
+python3 create_TFRecords.py
+----
+
+=== Réseau de neurones
+
+Creates the neural network and starts the training.
+
+----
+python3 launch_training.py
+----
+
+=== Freeze
+
+Freeze the model, remember to put the checkpoint number in `--input_checkpoint' instead of `NUMBER`.
+
+----
+python3 -m tensorflow.python.tools.freeze_graph  --input_graph=graph.pbtxt  --input_checkpoint=model.ckpt-NUMBER  --input_binary=False --output_graph=graph.pb  --output_node_names=input_tensor,action
+----
+
+== Usefull command lines
+
+.Run a bash in a container
+----
+docker exec -it votre_container_id bash
+----
+
+.Tensorboard allows you to follow the training of the model in real time, to be executed from the `ikea/tensorflow/model/` folder and consult from your browser `localhost:6006`
+----
+tensorboard --logdir .
+----
+
+
+
+== Notes
+
+* Installation of TensorFlow via docker
+** Good for testing
+** Facilitates the automation of the installation of the environment
+* Using TensorFlow `1.5.0``
