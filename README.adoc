@@ -58,7 +58,7 @@ Creates the TFRecord Files, three files containing the three sets of images :
 python3 create_TFRecords.py
 ----
 
-=== Réseau de neurones
+=== Neural Network
 
 Creates the neural network and starts the training.
 
